@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador de custos: redução da jornada (PEC 221/2019) | Razonet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EFF3F8; --surface:#FFFFFF; --surface-2:#EFF3F8; --ink:#1C232D; --ink-soft:rgba(28,35,45,.72);
+  --title:#003159; --accent:#0171EB; --accent-strong:#0151A2; --soft:#CCE3FB; --line:#CCE3FB;
+  --mid:#4B9AF1; --rose:#F8E5E3; --rose-ink:#1C232D; --head:#003159; --head-ink:#FFFFFF; --head-soft:#CCE3FB;
+  --input:#FFFFFF; --bar-base:#0171EB; --bar-2:#4B9AF1; --bar-3:#003159; --track:#EFF3F8;
+  color-scheme: light;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1C232D; --surface:#003159; --surface-2:#1C232D; --ink:#EFF3F8; --ink-soft:rgba(239,243,248,.72);
+    --title:#FFFFFF; --accent:#4B9AF1; --accent-strong:#CCE3FB; --soft:rgba(75,154,241,.22); --line:rgba(204,227,251,.22);
+    --mid:#4B9AF1; --rose:rgba(248,229,227,.14); --rose-ink:#F8E5E3; --head:#003159; --head-ink:#FFFFFF; --head-soft:#CCE3FB;
+    --input:#1C232D; --bar-base:#4B9AF1; --bar-2:#CCE3FB; --bar-3:#0171EB; --track:#1C232D;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1C232D; --surface:#003159; --surface-2:#1C232D; --ink:#EFF3F8; --ink-soft:rgba(239,243,248,.72);
+  --title:#FFFFFF; --accent:#4B9AF1; --accent-strong:#CCE3FB; --soft:rgba(75,154,241,.22); --line:rgba(204,227,251,.22);
+  --mid:#4B9AF1; --rose:rgba(248,229,227,.14); --rose-ink:#F8E5E3; --head:#003159; --head-ink:#FFFFFF; --head-soft:#CCE3FB;
+  --input:#1C232D; --bar-base:#4B9AF1; --bar-2:#CCE3FB; --bar-3:#0171EB; --track:#1C232D;
+  color-scheme: dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+img{max-width:100%}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+/* Cabeçalho */
+.top{background:var(--head);color:var(--head-ink)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:14px;padding-bottom:14px}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.02em;color:#FFFFFF}
+.brand small{display:block;font-weight:500;font-size:12px;color:var(--head-soft);letter-spacing:0}
+.top .tag{font-size:13px;color:var(--head-soft)}
+
+/* Abertura */
+.hero{background:var(--head);color:var(--head-ink);padding:28px 0 40px}
+.hero h1{color:#FFFFFF;font-size:clamp(26px,4vw,38px);line-height:1.12;letter-spacing:-.025em;margin:0 0 10px;max-width:22ch}
+.hero p{color:var(--head-soft);margin:0 0 28px;max-width:62ch}
+.ruler{display:grid;gap:14px}
+.rrow{display:grid;grid-template-columns:130px 1fr 92px;align-items:center;gap:14px}
+.rlabel{font-size:13px;color:var(--head-soft)}
+.rlabel b{display:block;color:#FFFFFF;font-size:15px}
+.rtrack{position:relative;height:30px;border-radius:6px;background:rgba(239,243,248,.08);overflow:hidden}
+.rfill{position:absolute;inset:0 auto 0 0;background:#0171EB;border-radius:6px 0 0 6px;transition:width .35s ease}
+.rcut{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,rgba(248,229,227,.85) 0 6px,rgba(248,229,227,.35) 6px 12px);transition:left .35s ease,width .35s ease}
+.rticks{position:absolute;inset:0;display:flex;pointer-events:none}
+.rticks span{flex:1;border-right:1px solid rgba(239,243,248,.18)}
+.rtime{font-variant-numeric:tabular-nums;font-weight:700;font-size:18px;color:#FFFFFF;text-align:right}
+.rtime small{display:block;font-size:12px;font-weight:500;color:#F8E5E3}
+.raxis{display:grid;grid-template-columns:130px 1fr 92px;gap:14px;font-size:11px;color:var(--head-soft)}
+.raxis div:nth-child(2){display:flex;justify-content:space-between}
+@media (max-width:640px){
+  .rrow,.raxis{grid-template-columns:84px 1fr 70px;gap:10px}
+  .rtime{font-size:15px}
+}
+@media (prefers-reduced-motion:reduce){.rfill,.rcut,.bar i{transition:none}}
+
+/* Seções */
+main{padding:28px 0 48px}
+section.block{background:var(--surface);border-radius:14px;padding:24px;margin-bottom:22px;border:1px solid var(--line)}
+h2{color:var(--accent);font-size:21px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em}
+.lead{color:var(--ink-soft);margin:0 0 20px;max-width:70ch;font-size:14px}
+h3{color:var(--ink);font-size:16px;font-weight:600;margin:0 0 8px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:var(--ink)}
+label.f span.h{font-weight:400;color:var(--ink-soft);font-size:12px}
+input,select{font:inherit;color:var(--ink);background:var(--input);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=number]{font-variant-numeric:tabular-nums}
+
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{background:#003159;color:#FFFFFF;font-weight:600;text-align:left;padding:10px 12px;white-space:nowrap}
+th:first-child{border-top-left-radius:8px}
+th:last-child{border-top-right-radius:8px}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:nth-child(even) td{background:var(--surface-2)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td input{padding:7px 9px}
+.staff td:nth-child(2){width:110px}
+.staff td:nth-child(3){width:170px}
+.staff td:last-child{width:48px;text-align:center}
+tfoot td{font-weight:700;border-bottom:none}
+
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid transparent;padding:9px 14px;font-weight:600}
+.btn{background:#0171EB;color:#FFFFFF}
+.btn:hover{background:#0151A2}
+.btn-ghost{background:transparent;color:var(--accent);border-color:var(--line)}
+.btn-ghost:hover{background:var(--soft)}
+.x{background:transparent;color:var(--ink-soft);padding:6px 9px;font-size:18px;line-height:1}
+.x:hover{background:var(--rose);color:var(--rose-ink)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+/* Resultados */
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:22px}
+.kpi{background:var(--soft);border-left:4px solid #0171EB;border-radius:10px;padding:14px 16px}
+.kpi p{margin:0;font-size:13px;color:var(--ink-soft)}
+.kpi strong{display:block;font-size:22px;color:var(--title);font-variant-numeric:tabular-nums;letter-spacing:-.01em;margin:2px 0}
+.up{color:var(--accent-strong);font-weight:600}
+
+.scen{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:6px}
+.card{border:1px solid var(--line);border-left:4px solid #0171EB;border-radius:10px;padding:18px;background:var(--surface)}
+.card.alt{border-left-color:#4B9AF1}
+.card.dark{border-left-color:var(--bar-3)}
+.card p.d{font-size:13px;color:var(--ink-soft);margin:0 0 14px}
+.card dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:14px}
+.card dt{color:var(--ink-soft)}
+.card dd{margin:0;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:var(--title)}
+.card dd.big{font-size:17px}
+.card .sep{grid-column:1/-1;border-top:1px solid var(--line);margin:4px 0}
+
+.chart{margin-top:22px}
+.crow{display:grid;grid-template-columns:200px 1fr;gap:12px;align-items:center;margin-bottom:12px}
+.crow .cl{font-size:13px;font-weight:600}
+.bars{display:grid;gap:5px}
+.bar{display:grid;grid-template-columns:1fr 128px;gap:10px;align-items:center;font-size:12px}
+.bar .t{height:16px;background:var(--track);border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;transition:width .35s ease}
+.bar span{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.legend{display:flex;gap:18px;font-size:12px;color:var(--ink-soft);margin-bottom:12px;flex-wrap:wrap}
+.legend b{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+@media (max-width:640px){.crow{grid-template-columns:1fr}.bar{grid-template-columns:1fr 112px}}
+
+.tabs{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:3px;margin-bottom:14px}
+.tabs button{background:transparent;color:var(--ink);padding:7px 14px;font-weight:600;font-size:13px}
+.tabs button[aria-pressed="true"]{background:#0171EB;color:#FFFFFF}
+
+.callout{background:var(--soft);border-left:4px solid #0171EB;border-radius:8px;padding:14px 16px;font-size:14px;margin-top:16px}
+.alert{background:var(--rose);color:var(--rose-ink);border-radius:8px;padding:14px 16px;font-size:14px;margin-top:16px}
+.callout p,.alert p{margin:0 0 6px}.callout p:last-child,.alert p:last-child{margin:0}
+details{margin-top:6px}
+summary{cursor:pointer;font-weight:600;color:var(--accent)}
+details ul{padding-left:20px;font-size:14px;color:var(--ink)}
+details li{margin-bottom:6px}
+
+footer{background:#1C232D;color:#EFF3F8;font-size:12px;padding:20px 0}
+footer p{margin:0 0 4px;opacity:.85}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">Razonet<small>Contabilidade Digital</small></div>
+    <div class="tag">EC 141/2026, fim da escala 6x1</div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <h1>Quanto custa reduzir a jornada sem reduzir o salário?</h1>
+    <p>Informe o quadro de funcionários e veja o impacto financeiro das duas etapas da nova regra: 42 horas semanais (divisor 210) e depois 40 horas semanais (divisor 200), comparadas com as 44 horas de hoje (divisor 220).</p>
+    <div class="ruler" id="ruler" aria-label="Jornada diária em cada etapa"></div>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <section class="block" aria-labelledby="s1">
+    <h2 id="s1">Dados da empresa</h2>
+    <p class="lead">Os encargos são preenchidos conforme o regime tributário. Você pode ajustar qualquer percentual para refletir a realidade da empresa (RAT/FAP, terceiros, convenção coletiva).</p>
+    <div class="grid">
+      <label class="f">Regime tributário
+        <select id="regime">
+          <option value="mei">MEI</option>
+          <option value="simples">Simples Nacional (Anexos I, II, III e V)</option>
+          <option value="anexo4">Simples Nacional (Anexo IV)</option>
+          <option value="presumido">Lucro Presumido ou Real</option>
+          <option value="custom">Personalizado</option>
+        </select>
+        <span class="h" id="encTot"></span>
+      </label>
+      <label class="f">INSS patronal (%)
+        <input type="number" id="inss" step="0.1" min="0">
+        <span class="h">20% no Anexo IV e no Presumido/Real, 3% no MEI</span>
+      </label>
+      <label class="f">RAT × FAP (%)
+        <input type="number" id="rat" step="0.01" min="0">
+        <span class="h">RAT de 1% a 3% multiplicado pelo FAP (0,5 a 2)</span>
+      </label>
+      <label class="f">Terceiros (%)
+        <input type="number" id="terc" step="0.1" min="0">
+        <span class="h">Sistema S e salário-educação, só no Presumido/Real</span>
+      </label>
+      <label class="f">FGTS (%)
+        <input type="number" id="fgts" step="0.1" min="0">
+        <span class="h">8% em todos os regimes</span>
+      </label>
+      <label class="f">Provisões de 13º e férias (%)
+        <input type="number" id="prov" step="0.01" min="0">
+        <span class="h">13º 8,33% + férias com 1/3 11,11%</span>
+      </label>
+      <label class="f">Dias trabalhados por semana
+        <select id="dias">
+          <option value="5">5 dias (segunda a sexta)</option>
+          <option value="6">6 dias</option>
+        </select>
+        <span class="h">Define a jornada diária na régua acima</span>
+      </label>
+      <label class="f">Adicional de hora extra (%)
+        <input type="number" id="he" step="1" min="0">
+        <span class="h">Mínimo legal 50%, confira a CCT</span>
+      </label>
+      <label class="f">Reflexo do DSR sobre horas extras (%)
+        <input type="number" id="dsr" step="0.1" min="0">
+        <span class="h">Dias de descanso ÷ dias úteis do mês</span>
+      </label>
+      <label class="f">Benefícios por novo funcionário (R$/mês)
+        <input type="number" id="benef" step="10" min="0">
+        <span class="h">Vale-transporte, alimentação, plano etc.</span>
+      </label>
+    </div>
+    <div class="alert" id="meiNote" hidden></div>
+  </section>
+
+  <section class="block" aria-labelledby="s2">
+    <h2 id="s2">Quadro de funcionários</h2>
+    <p class="lead">Cadastre cada cargo com a quantidade de empregados e o salário mensal. Todos são considerados hoje em 44 horas semanais (divisor 220).</p>
+    <div class="scroll">
+      <table class="staff">
+        <thead><tr><th>Cargo</th><th class="n">Quantidade</th><th class="n">Salário mensal (R$)</th><th><span class="sr" style="position:absolute;left:-9999px">Remover</span></th></tr></thead>
+        <tbody id="rows"></tbody>
+        <tfoot><tr><td>Total</td><td class="n" id="totQ"></td><td class="n" id="totF"></td><td></td></tr></tfoot>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="btn" id="add" type="button">Adicionar cargo</button>
+      <button class="btn-ghost" id="reset" type="button">Restaurar exemplo</button>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="s3">
+    <h2 id="s3">Impacto na hora de trabalho</h2>
+    <p class="lead">O salário mensal não muda, mas passa a remunerar menos horas. Por isso o valor da hora (e da hora extra) sobe em cada etapa.</p>
+    <div class="summary" id="kpis"></div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Indicador</th><th class="n">Hoje (44 h)</th><th class="n">Etapa 1 (42 h)</th><th class="n">Etapa 2 (40 h)</th></tr></thead>
+        <tbody id="comp"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="s4">
+    <h2 id="s4">Como repor as horas a menos, e quanto custa</h2>
+    <p class="lead">Cada etapa retira horas de trabalho por mês de cada empregado. A empresa pode absorver essa perda, repor com horas extras ou contratar. Os valores abaixo já incluem encargos e provisões.</p>
+    <div class="scen" id="scen"></div>
+    <div class="chart">
+      <h3>Custo adicional por ano</h3>
+      <div class="legend"><span><b style="background:var(--bar-base)"></b>Etapa 1 (42 h)</span><span><b style="background:var(--bar-3)"></b>Etapa 2 (40 h)</span></div>
+      <div id="chart"></div>
+    </div>
+    <div class="alert">
+      <p><strong>Atenção às horas extras habituais.</strong> Repor a redução com horas extras todos os meses pode gerar integração das horas ao salário (reflexos em férias, 13º, FGTS e aviso prévio) e questionamentos sobre o cumprimento da nova regra. O limite legal é de 2 horas extras por dia, e a convenção coletiva pode trazer regras próprias.</p>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="s5">
+    <h2 id="s5">Detalhe por cargo</h2>
+    <p class="lead">Valores por empregado de cada cargo na etapa selecionada.</p>
+    <div class="tabs" role="group" aria-label="Etapa">
+      <button type="button" data-st="1" aria-pressed="true">Etapa 1 (42 h)</button>
+      <button type="button" data-st="2" aria-pressed="false">Etapa 2 (40 h)</button>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Cargo</th><th class="n">Hora hoje</th><th class="n">Nova hora</th><th class="n">Hora extra</th><th class="n">HE por empregado/mês</th><th class="n">Custo HE do cargo/ano</th><th class="n">Contratação equivalente</th></tr></thead>
+        <tbody id="det"></tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <p><strong>Antecipar para 40 horas já é permitido.</strong> A legislação atual aceita jornadas menores que 44 horas, desde que o salário mensal seja mantido, a mudança seja formalizada em aditivo contratual e a CCT seja respeitada. Depois de formalizada, a volta para 44 horas pode ser considerada alteração prejudicial ao empregado.</p>
+    </div>
+
+    <details>
+      <summary>Como o cálculo é feito</summary>
+      <ul>
+        <li>Valor da hora = salário mensal ÷ divisor (220 hoje, 210 na etapa 1, 200 na etapa 2).</li>
+        <li>Horas a menos por empregado no mês = 220 − novo divisor (10 h na etapa 1 e 20 h na etapa 2).</li>
+        <li>Custo total = valor × (1 + provisões de 13º e férias) × (1 + encargos). Os encargos incidem também sobre as provisões.</li>
+        <li>Absorver a redução: não há desembolso extra. O valor mostrado é a parte da folha que deixa de ter horas correspondentes, ou seja, quanto a hora trabalhada fica mais cara.</li>
+        <li>Horas extras: horas a menos × nova hora × (1 + adicional) × (1 + reflexo do DSR), com encargos e provisões, considerando a habitualidade.</li>
+        <li>Contratação: horas a menos ÷ nova jornada mensal = funcionários equivalentes no mesmo cargo e salário, mais benefícios. Frações podem ser cobertas por contratos de meio período.</li>
+        <li>A Emenda Constitucional nº 141/2026 foi promulgada em 16/10/2026. A etapa 1 (42 h) vale 60 dias após a publicação no Diário Oficial, em meados de dezembro de 2026, e a etapa 2 (40 h), 12 meses depois.</li>
+      </ul>
+    </details>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Simulação de caráter estimativo, elaborada pela Razonet Contabilidade Digital com base na Emenda Constitucional nº 141/2026 (PEC 221/2019), promulgada em 16/10/2026. Não substitui a análise do contrato de trabalho e da convenção coletiva aplicável.</p>
+    <p>Para aplicar a nova jornada, fale com o Departamento Pessoal da Razonet.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const KEY='razonet-sim-6x1-v1';
+  const PRESETS={mei:{inss:3,rat:0,terc:0,fgts:8},simples:{inss:0,rat:0,terc:0,fgts:8},anexo4:{inss:20,rat:2,terc:0,fgts:8},presumido:{inss:20,rat:2,terc:5.8,fgts:8}};
+  const STAGES=[{nome:'Hoje',h:44,d:220},{nome:'Etapa 1',h:42,d:210},{nome:'Etapa 2',h:40,d:200}];
+  const DEFAULT={regime:'simples',inss:0,rat:0,terc:0,fgts:8,prov:19.44,dias:5,he:50,dsr:20,benef:600,
+    rows:[{cargo:'Auxiliar administrativo',qtd:3,sal:2200},{cargo:'Vendedor',qtd:4,sal:2600},{cargo:'Operador de caixa',qtd:2,sal:1900}]};
+  let st; let detStage=1;
+  try{ const raw=localStorage.getItem(KEY); st=raw?JSON.parse(raw):null; }catch(e){ st=null; }
+  if(!st||!Array.isArray(st.rows)) st=JSON.parse(JSON.stringify(DEFAULT));
+  if(st.fgts==null){ if(!PRESETS[st.regime]) st.regime='simples'; Object.assign(st,PRESETS[st.regime]); delete st.enc; }
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(st)); }catch(e){} }
+
+  const $=id=>document.getElementById(id);
+  const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const brl0=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+  const nf=(v,d=1)=>v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const pct=v=>nf(v*100,2).replace(/,00$/,'')+'%';
+  const hm=h=>{const m=Math.round(h*60);return Math.floor(m/60)+'h'+String(m%60).padStart(2,'0');};
+  const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0;};
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  // Campos gerais
+  const FIELDS=['regime','inss','rat','terc','fgts','prov','dias','he','dsr','benef'];
+  const fill=()=>FIELDS.forEach(k=>{ $(k).value=st[k]; });
+  fill();
+  $('regime').addEventListener('change',e=>{ st.regime=e.target.value; if(PRESETS[st.regime]){ Object.assign(st,PRESETS[st.regime]); fill(); } update(); });
+  ['inss','rat','terc','fgts','prov','he','dsr','benef'].forEach(k=>$(k).addEventListener('input',e=>{ st[k]=num(e.target.value); update(); }));
+  $('dias').addEventListener('change',e=>{ st.dias=num(e.target.value); update(); });
+
+  // Quadro
+  function renderRows(){
+    $('rows').innerHTML=st.rows.map((r,i)=>`<tr>
+      <td><input aria-label="Cargo" data-i="${i}" data-k="cargo" value="${esc(r.cargo)}"></td>
+      <td class="n"><input aria-label="Quantidade" type="number" min="0" step="1" data-i="${i}" data-k="qtd" value="${r.qtd}"></td>
+      <td class="n"><input aria-label="Salário mensal" type="number" min="0" step="50" data-i="${i}" data-k="sal" value="${r.sal}"></td>
+      <td><button type="button" class="x" data-del="${i}" aria-label="Remover cargo">×</button></td></tr>`).join('');
+  }
+  $('rows').addEventListener('input',e=>{ const t=e.target; if(!t.dataset.k) return; const r=st.rows[+t.dataset.i]; r[t.dataset.k]=t.dataset.k==='cargo'?t.value:num(t.value); update(); });
+  $('rows').addEventListener('click',e=>{ const b=e.target.closest('[data-del]'); if(!b) return; st.rows.splice(+b.dataset.del,1); renderRows(); update(); });
+  $('add').addEventListener('click',()=>{ st.rows.push({cargo:'Novo cargo',qtd:1,sal:2000}); renderRows(); update(); const ins=$('rows').querySelectorAll('input[data-k="cargo"]'); ins[ins.length-1].select(); });
+  $('reset').addEventListener('click',()=>{ st=JSON.parse(JSON.stringify(DEFAULT)); fill(); renderRows(); update(); });
+
+  document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{ detStage=+b.dataset.st; document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false')); update(); }));
+
+  function calc(){
+    const enc=st.inss+st.rat+st.terc+st.fgts;
+    const M=(1+st.prov/100)*(1+enc/100);
+    const he=1+st.he/100, dsr=1+st.dsr/100;
+    const rows=st.rows.filter(r=>r.qtd>0&&r.sal>0);
+    const N=rows.reduce((a,r)=>a+r.qtd,0);
+    const F=rows.reduce((a,r)=>a+r.qtd*r.sal,0);
+    const stages=STAGES.map(s=>{
+      const lost=220-s.d;
+      const A=F*M*(1-s.d/220);
+      const B=rows.reduce((a,r)=>a+r.qtd*lost*(r.sal/s.d)*he*dsr*M,0);
+      const fte=rows.reduce((a,r)=>a+r.qtd*lost/s.d,0);
+      const C=rows.reduce((a,r)=>a+(r.qtd*lost/s.d)*(r.sal*M+st.benef),0);
+      return {...s,lost,horaMed:N?F/(N*s.d):0,heMed:N?F/(N*s.d)*he:0,custoHora:N?F*M/(N*s.d):0,horasMes:N*s.d,lostTot:N*lost,A,B,C,fte};
+    });
+    return {M,enc,he,dsr,rows,N,F,stages};
+  }
+
+  function renderRuler(){
+    const max=9.5, base=44/st.dias;
+    $('ruler').innerHTML=STAGES.map((s,i)=>{
+      const h=s.h/st.dias, cut=base-h;
+      return `<div class="rrow">
+        <div class="rlabel"><b>${s.nome}</b>${s.h} h por semana</div>
+        <div class="rtrack"><div class="rfill" style="width:${h/max*100}%"></div>${i?`<div class="rcut" style="left:${h/max*100}%;width:${cut/max*100}%"></div>`:''}<div class="rticks">${'<span></span>'.repeat(9)}<span style="flex:.5;border:0"></span></div></div>
+        <div class="rtime">${hm(h)}<small>${i?'−'+Math.round(cut*60)+' min/dia':'por dia'}</small></div></div>`;
+    }).join('')+`<div class="raxis"><div></div><div><span>0h</span><span>3h</span><span>6h</span><span>9h</span></div><div></div></div>`;
+    // ajusta rótulos do eixo para escala de 9,5h
+    const ax=$('ruler').querySelector('.raxis div:nth-child(2)');
+    ax.style.justifyContent='normal'; ax.style.position='relative'; ax.style.height='14px';
+    ax.innerHTML=[0,2,4,6,8].map(v=>`<span style="position:absolute;left:${v/max*100}%;transform:translateX(${v?'-50%':'0'})">${v}h</span>`).join('');
+  }
+
+  function update(){
+    save();
+    renderRuler();
+    const c=calc(), [s0,s1,s2]=c.stages;
+    $('totQ').textContent=c.N;
+    $('totF').textContent=brl(c.F);
+    $('encTot').textContent='Encargos totais: '+nf(c.enc,2)+'% sobre a folha';
+    const mn=$('meiNote'); mn.hidden=st.regime!=='mei';
+    if(st.regime==='mei') mn.innerHTML=`<p><strong>O MEI pode ter apenas 1 empregado</strong>, com salário mínimo ou piso da categoria.${c.N>1?' O quadro atual tem '+c.N+' empregados, ajuste para refletir a regra.':''} Por isso, a opção de contratar para repor horas não se aplica ao MEI.</p>`;
+
+    $('kpis').innerHTML=`
+      <div class="kpi"><p>Folha mensal com encargos (não muda)</p><strong>${brl0(c.F*c.M)}</strong><p>${c.N} empregados, fator de encargos ${nf(c.M,3)}</p></div>
+      <div class="kpi"><p>Horas a menos por mês na etapa 1</p><strong>${nf(s1.lostTot,0)} h</strong><p>${s1.lost} h por empregado</p></div>
+      <div class="kpi"><p>Horas a menos por mês na etapa 2</p><strong>${nf(s2.lostTot,0)} h</strong><p>${s2.lost} h por empregado</p></div>
+      <div class="kpi"><p>Aumento do custo da hora trabalhada</p><strong>+${pct(220/210-1)} / +${pct(220/200-1)}</strong><p>Etapa 1 / Etapa 2</p></div>`;
+
+    const inc=(v,b)=>b?` <span class="up">+${pct(v/b-1)}</span>`:'';
+    const line=(label,f)=>`<tr><td>${label}</td>${c.stages.map((s,i)=>`<td class="n">${f(s,i)}</td>`).join('')}</tr>`;
+    $('comp').innerHTML=[
+      line('Jornada semanal',s=>s.h+' h'),
+      line('Jornada diária ('+st.dias+' dias)',s=>hm(s.h/st.dias)),
+      line('Divisor mensal',s=>s.d),
+      line('Horas pagas no mês (empresa)',s=>nf(s.horasMes,0)+' h'),
+      line('Valor médio da hora',(s,i)=>brl(s.horaMed)+(i?inc(s.horaMed,s0.horaMed):'')),
+      line('Valor médio da hora extra',(s,i)=>brl(s.heMed)+(i?inc(s.heMed,s0.heMed):'')),
+      line('Custo da hora com encargos',(s,i)=>brl(s.custoHora)+(i?inc(s.custoHora,s0.custoHora):'')),
+      line('Folha mensal com encargos',s=>brl(c.F*c.M))
+    ].join('');
+
+    const card=(cls,title,desc,key,extra)=>`<div class="card ${cls}"><h3>${title}</h3><p class="d">${desc}</p><dl>
+      ${[s1,s2].map((s,i)=>`${i?'<div class="sep"></div>':''}<dt>${s.nome} por mês</dt><dd>${brl0(s[key])}</dd><dt>${s.nome} por ano</dt><dd class="big">${brl0(s[key]*12)}</dd>${extra?extra(s):''}`).join('')}
+      </dl></div>`;
+    $('scen').innerHTML=
+      card('','Absorver a redução','Mantém o quadro e aceita produzir menos horas. Não há desembolso novo, mas parte da folha deixa de ter horas correspondentes.','A')+
+      card('alt','Repor com horas extras','Cada empregado faz as horas a menos como extra, com adicional, DSR, encargos e reflexos.','B',s=>`<dt>Horas extras por empregado</dt><dd>${s.lost} h/mês</dd>`)+
+      card('dark','Contratar para repor','Novos empregados nos mesmos cargos e salários, com benefícios, cobrindo as horas a menos.','C',s=>`<dt>Funcionários equivalentes</dt><dd>${nf(s.fte,1)} (≈ ${Math.ceil(s.fte-1e-9)})</dd>`);
+
+    const maxV=Math.max(1,...[s1,s2].flatMap(s=>[s.A,s.B,s.C]))*12;
+    const bar=(v,col)=>`<div class="bar"><div class="t"><i style="width:${v/maxV*100}%;background:${col}"></i></div><span>${brl0(v)}</span></div>`;
+    $('chart').innerHTML=[['Absorver (custo implícito)','A'],['Horas extras','B'],['Contratação','C']].map(([l,k])=>
+      `<div class="crow"><div class="cl">${l}</div><div class="bars">${bar(s1[k]*12,'var(--bar-base)')}${bar(s2[k]*12,'var(--bar-3)')}</div></div>`).join('');
+
+    const s=c.stages[detStage], lost=s.lost;
+    $('det').innerHTML=c.rows.length?c.rows.map(r=>{
+      const h0=r.sal/220, h1=r.sal/s.d, hx=h1*c.he;
+      const heMes=lost*hx*c.dsr;
+      return `<tr><td>${esc(r.cargo)} <span style="color:var(--ink-soft)">(${r.qtd})</span></td>
+        <td class="n">${brl(h0)}</td><td class="n">${brl(h1)}</td><td class="n">${brl(hx)}</td>
+        <td class="n">${brl(heMes)}</td><td class="n">${brl0(heMes*c.M*r.qtd*12)}</td>
+        <td class="n">${nf(r.qtd*lost/s.d,2)}</td></tr>`;
+    }).join(''):`<tr><td colspan="7">Adicione ao menos um cargo com quantidade e salário para ver o detalhe.</td></tr>`;
+  }
+
+  renderRows();
+  update();
+})();
+</script>
+</body>
+</html>

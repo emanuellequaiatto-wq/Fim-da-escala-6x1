@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador de escalas: novas regras de jornada | Razonet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EFF3F8; --surface:#FFFFFF; --surface-2:#EFF3F8; --ink:#1C232D; --ink-soft:rgba(28,35,45,.72);
+  --title:#003159; --accent:#0171EB; --accent-strong:#0151A2; --soft:#CCE3FB; --line:#CCE3FB;
+  --rose:#F8E5E3; --rose-ink:#1C232D; --input:#FFFFFF; --track:#EFF3F8; --work:#0171EB; --night:rgba(0,49,89,.10);
+  color-scheme: light;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1C232D; --surface:#003159; --surface-2:#1C232D; --ink:#EFF3F8; --ink-soft:rgba(239,243,248,.72);
+    --title:#FFFFFF; --accent:#4B9AF1; --accent-strong:#CCE3FB; --soft:rgba(75,154,241,.22); --line:rgba(204,227,251,.22);
+    --rose:rgba(248,229,227,.16); --rose-ink:#F8E5E3; --input:#1C232D; --track:#1C232D; --work:#4B9AF1; --night:rgba(204,227,251,.10);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1C232D; --surface:#003159; --surface-2:#1C232D; --ink:#EFF3F8; --ink-soft:rgba(239,243,248,.72);
+  --title:#FFFFFF; --accent:#4B9AF1; --accent-strong:#CCE3FB; --soft:rgba(75,154,241,.22); --line:rgba(204,227,251,.22);
+  --rose:rgba(248,229,227,.16); --rose-ink:#F8E5E3; --input:#1C232D; --track:#1C232D; --work:#4B9AF1; --night:rgba(204,227,251,.10);
+  color-scheme: dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+.top{background:#003159;color:#FFFFFF}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:14px;padding-bottom:14px}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.02em}
+.brand small{display:block;font-weight:500;font-size:12px;color:#CCE3FB;letter-spacing:0}
+.top .tag{font-size:13px;color:#CCE3FB}
+
+.hero{background:#003159;color:#FFFFFF;padding:24px 0 34px}
+.hero h1{font-size:clamp(26px,4vw,38px);line-height:1.12;letter-spacing:-.025em;margin:0 0 10px;max-width:24ch}
+.hero p{color:#CCE3FB;margin:0 0 22px;max-width:64ch}
+.seg{display:inline-flex;flex-wrap:wrap;background:rgba(239,243,248,.08);border-radius:10px;padding:4px;gap:4px}
+.seg button{background:transparent;color:#EFF3F8;border:0;padding:10px 16px;border-radius:7px;font:inherit;font-weight:600;cursor:pointer;text-align:left}
+.seg button small{display:block;font-weight:400;font-size:12px;color:#CCE3FB}
+.seg button[aria-pressed="true"]{background:#0171EB;color:#FFFFFF}
+.seg button[aria-pressed="true"] small{color:#FFFFFF}
+.seg a.x12{display:block;color:#FFFFFF;text-decoration:none;padding:9px 16px;border-radius:7px;font-weight:600;border:1px solid #4B9AF1;background:rgba(75,154,241,.18)}
+.seg a.x12:hover{background:rgba(75,154,241,.32)}
+.seg a.x12 small{display:block;font-weight:400;font-size:12px;color:#CCE3FB}
+html{scroll-behavior:smooth}
+.status{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline}
+.status .big{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.status .big small{font-size:16px;font-weight:500;color:#CCE3FB;letter-spacing:0;margin-left:6px}
+.pill{display:inline-block;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600}
+.pill.ok{background:#CCE3FB;color:#003159}
+.pill.bad{background:#F8E5E3;color:#1C232D}
+
+main{padding:28px 0 48px}
+section.block{background:var(--surface);border-radius:14px;padding:24px;margin-bottom:22px;border:1px solid var(--line)}
+h2{color:var(--accent);font-size:21px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em}
+.lead{color:var(--ink-soft);margin:0 0 18px;max-width:72ch;font-size:14px}
+h3{color:var(--ink);font-size:16px;font-weight:600;margin:0 0 8px}
+
+.tpls{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.tpl{background:var(--surface);border:1px solid var(--line);border-left:4px solid #0171EB;border-radius:10px;padding:12px 14px;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
+.tpl:hover{background:var(--soft)}
+.tpl b{display:block;font-size:14px}
+.tpl span{font-size:12px;color:var(--ink-soft)}
+
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid transparent;padding:9px 14px;font-weight:600}
+.btn{background:#0171EB;color:#FFFFFF}
+.btn:hover{background:#0151A2}
+.btn-ghost{background:transparent;color:var(--accent);border-color:var(--line)}
+.btn-ghost:hover{background:var(--soft)}
+.btn-ghost:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.weekbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.tabs{display:inline-flex;flex-wrap:wrap;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:3px}
+.tabs button{background:transparent;color:var(--ink);padding:7px 14px;font-size:13px}
+.tabs button[aria-pressed="true"]{background:#0171EB;color:#FFFFFF}
+.weekbar .acts{display:flex;gap:8px;flex-wrap:wrap}
+
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:14px}
+thead th{background:#003159;color:#FFFFFF;font-weight:600;text-align:left;padding:10px 10px;white-space:nowrap}
+thead th:first-child{border-top-left-radius:8px}
+thead th:last-child{border-top-right-radius:8px}
+tbody th{text-align:left;font-weight:600;padding:8px 10px;white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody th{border-bottom:1px solid var(--line)}
+tbody tr:nth-child(even) td,tbody tr:nth-child(even) th{background:var(--surface-2)}
+tr.off td,tr.off th{color:var(--ink-soft)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+input.hr{font:inherit;color:var(--ink);background:var(--input);border:1px solid var(--line);border-radius:8px;padding:7px 8px;width:82px;text-align:center;font-variant-numeric:tabular-nums}
+input.hr:disabled{opacity:.4}
+.sw{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.sw input{width:18px;height:18px;accent-color:#0171EB}
+.hrs{font-weight:700;color:var(--title)}
+.hrs.warn{color:var(--accent-strong)}
+.note{font-size:13px;color:var(--ink-soft);margin:12px 0 0}
+
+/* Linha do tempo */
+.tl{display:grid;gap:8px;margin-top:6px}
+.tlr{display:grid;grid-template-columns:44px 1fr 62px;gap:10px;align-items:center}
+.tlr .dl{font-size:13px;font-weight:600}
+.tlr .dh{font-size:13px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.track{position:relative;height:28px;background:var(--track);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.track .nz{position:absolute;top:0;bottom:0;background:var(--night)}
+.track .wk{position:absolute;top:4px;bottom:4px;background:var(--work);border-radius:4px}
+.track .gl{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
+.track.off{background:repeating-linear-gradient(135deg,var(--rose) 0 8px,transparent 8px 16px)}
+.track.off::after{content:"Folga";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--rose-ink)}
+.axis{display:grid;grid-template-columns:44px 1fr 62px;gap:10px;font-size:11px;color:var(--ink-soft)}
+.axis .ax{position:relative;height:14px}
+.axis .ax span{position:absolute;transform:translateX(-50%)}
+.axis .ax span:first-child{transform:none}
+.axis .ax span:last-child{transform:translateX(-100%)}
+.leg{display:flex;flex-wrap:wrap;gap:18px;font-size:12px;color:var(--ink-soft);margin-top:12px}
+.leg i{display:inline-block;width:14px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid var(--line)}
+
+/* Resultado */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px}
+.kpi{background:var(--soft);border-left:4px solid #0171EB;border-radius:10px;padding:14px 16px}
+.kpi p{margin:0;font-size:13px;color:var(--ink-soft)}
+.kpi strong{display:block;font-size:22px;color:var(--title);font-variant-numeric:tabular-nums;margin:2px 0}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.checks li{display:grid;grid-template-columns:86px 1fr;gap:12px;align-items:start;padding:10px 14px;border-radius:8px;font-size:14px;border:1px solid var(--line)}
+.checks li .lv{font-size:12px;font-weight:700;padding:3px 0;border-radius:999px;text-align:center}
+.checks li.erro{background:var(--rose);border-color:transparent;color:var(--rose-ink)}
+.checks li.erro .lv{background:#003159;color:#FFFFFF}
+.checks li.aviso{background:var(--soft);border-color:transparent}
+.checks li.aviso .lv{background:#0151A2;color:#FFFFFF}
+.checks li.info .lv{background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
+.checks li.ok .lv{background:#CCE3FB;color:#003159}
+@media (max-width:560px){.checks li{grid-template-columns:1fr;gap:6px}.checks li .lv{justify-self:start;padding:3px 10px}}
+
+.cal td{text-align:center;font-variant-numeric:tabular-nums;font-size:13px}
+.cal td.f{background:var(--rose) !important;color:var(--rose-ink);font-weight:600}
+.cal td.t{font-weight:700}
+
+.callout{background:var(--soft);border-left:4px solid #0171EB;border-radius:8px;padding:14px 16px;font-size:14px;margin-top:16px}
+.callout p{margin:0 0 6px}.callout p:last-child{margin:0}
+details{margin-top:14px}
+summary{cursor:pointer;font-weight:600;color:var(--accent)}
+details ul{padding-left:20px;font-size:14px}
+details li{margin-bottom:6px}
+
+.g12{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
+.g12 label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:var(--ink)}
+.g12 .h{font-weight:400;color:var(--ink-soft);font-size:12px}
+.g12 input:not(.hr),.g12 select{font:inherit;color:var(--ink);background:var(--input);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+.g12 input.hr{width:100%}
+.hero a.jump{color:#FFFFFF;font-weight:600;font-size:14px}
+footer{background:#1C232D;color:#EFF3F8;font-size:12px;padding:20px 0}
+footer p{margin:0 0 4px;opacity:.85}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">Razonet<small>Contabilidade Digital</small></div>
+    <div class="tag">EC 141/2026, fim da escala 6x1</div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <h1>Monte a escala da sua equipe dentro das novas regras</h1>
+    <p>Escolha a regra, defina os horários de cada dia e as folgas. O simulador confere a jornada diária, semanal e mensal, os intervalos, o descanso entre jornadas e os dias de folga.</p>
+    <div class="seg" role="group" aria-label="Regra de jornada" id="rules"></div>
+    <div class="status" id="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<main class="wrap">
+  <section class="block" aria-labelledby="s1">
+    <h2 id="s1">Comece por um modelo</h2>
+    <p class="lead">Os modelos substituem a escala atual. Depois você pode ajustar qualquer horário.</p>
+    <div class="tpls" id="tpls"></div>
+  </section>
+
+  <section class="block" aria-labelledby="s2">
+    <h2 id="s2">Horários da escala</h2>
+    <p class="lead">Use várias semanas quando a folga muda de uma semana para outra (revezamento). Deixe o intervalo em branco se não houver pausa no dia.</p>
+    <div class="weekbar">
+      <div class="tabs" role="group" aria-label="Semana do ciclo" id="wtabs"></div>
+      <div class="acts">
+        <button type="button" class="btn-ghost" id="addW">Adicionar semana</button>
+        <button type="button" class="btn-ghost" id="delW">Remover esta semana</button>
+      </div>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Dia</th><th>Situação</th><th>Entrada</th><th>Saída para intervalo</th><th>Volta do intervalo</th><th>Saída</th><th class="n">Horas</th></tr></thead>
+        <tbody id="days"></tbody>
+        <tfoot><tr><td colspan="6" style="font-weight:700;border:0">Total da semana</td><td class="n hrs" id="wtot" style="border:0"></td></tr></tfoot>
+      </table>
+    </div>
+    <div style="margin-top:14px"><button type="button" class="btn" id="copyMon">Repetir o horário de segunda nos outros dias de trabalho</button></div>
+
+    <h3 style="margin-top:26px">Visão do dia a dia</h3>
+    <div class="tl" id="tl"></div>
+    <div class="leg"><span><i style="background:var(--work);border-color:transparent"></i>Trabalho</span><span><i style="background:var(--night)"></i>Período noturno (22h às 5h)</span><span><i style="background:var(--rose)"></i>Folga</span></div>
+  </section>
+
+  <section class="block" aria-labelledby="s3">
+    <h2 id="s3">Conferência da escala</h2>
+    <p class="lead" id="ruleLead"></p>
+    <div class="kpis" id="kpis"></div>
+    <ul class="checks" id="checks"></ul>
+    <div id="calWrap"></div>
+  </section>
+
+  <section class="block" id="escala-12x36" aria-labelledby="s12">
+    <h2 id="s12">Simulador da escala 12x36</h2>
+    <p class="lead">Confira a média semanal da escala 12x36 nas duas etapas da nova regra. Pela Emenda, regimes diferenciados como a 12x36 se adequam por acordo ou convenção coletiva e precisarão caber em 40 h semanais até 16/12/2027.</p>
+    <div class="g12">
+      <label>Entrada do plantão<input class="hr" id="x_ent" inputmode="numeric" maxlength="5" placeholder="hh:mm"><span class="h">Formato 24 horas</span></label>
+      <label>Saída do plantão<input class="hr" id="x_sai" inputmode="numeric" maxlength="5" placeholder="hh:mm"><span class="h">Na 12x36, 12 horas após a entrada</span></label>
+      <label>Saída para intervalo<input class="hr" id="x_ii" inputmode="numeric" maxlength="5" placeholder="hh:mm"><span class="h">Em branco se o intervalo for indenizado</span></label>
+      <label>Volta do intervalo<input class="hr" id="x_fi" inputmode="numeric" maxlength="5" placeholder="hh:mm"><span class="h">Em branco se o intervalo for indenizado</span></label>
+      <label>Primeiro plantão<select id="x_dia"><option value="0">Segunda</option><option value="1">Terça</option><option value="2">Quarta</option><option value="3">Quinta</option><option value="4">Sexta</option><option value="5">Sábado</option><option value="6">Domingo</option></select><span class="h">Dia da semana do primeiro turno</span></label>
+      <label>Salário mensal (R$)<input type="number" id="x_sal" min="0" step="50"><span class="h">Para comparar o valor da hora</span></label>
+      <label>Divisor atual<input type="number" id="x_div" min="1" step="1"><span class="h">Geralmente 220 ou o previsto na CCT</span></label>
+    </div>
+    <div class="kpis" id="x_kpis"></div>
+    <ul class="checks" id="x_checks"></ul>
+    <h3 style="margin-top:24px">Primeiras 4 semanas da escala</h3>
+    <div class="scroll"><table class="cal" id="x_cal"></table></div>
+    <div class="callout" id="x_dica"></div>
+  </section>
+
+  <section class="block" aria-labelledby="s4">
+    <h2 id="s4">Regras usadas na conferência</h2>
+    <div class="callout">
+      <p><strong>A Emenda Constitucional nº 141/2026 foi promulgada em 16/10/2026.</strong> As empresas têm 60 dias, contados da publicação no Diário Oficial (meados de dezembro de 2026), para adotar as 2 folgas semanais e a jornada de 42 h. A jornada de 40 h passa a valer 12 meses depois. Já é possível adotar 40 horas desde agora, sem reduzir o salário e com aditivo contratual.</p>
+    </div>
+    <div class="callout">
+      <p><strong>Escala 12x36 ou jornada já reduzida?</strong> Por enquanto, a jornada atual é mantida e muda apenas o divisor para 200 h/mês, quando o atual for maior. A escala 12x36 também precisará ser revisada até 16/12/2027 para ficar dentro das 40 h semanais: verifique com o sindicato da categoria. Fique atento ainda a uma possível nova legislação para jornadas diferenciadas e setores essenciais.</p>
+    </div>
+    <details open>
+      <summary>O que o simulador confere</summary>
+      <ul>
+        <li>Jornada semanal: até 44 h hoje, 42 h na etapa 1 e 40 h na etapa 2, em cada semana do ciclo. Para o termo aditivo, a semana deve fechar exatamente 42 h ou 40 h.</li>
+        <li>Jornada mensal de referência: média semanal × 5, comparada com o divisor (220, 210 ou 200 horas).</li>
+        <li>Jornada diária: até 8 horas. De segunda a sexta, 42 h correspondem a 8h24 por dia e 40 h a 8h00 por dia. Jornadas com compensação precisam ser aprovadas por acordo coletivo; verifique com o sindicato da categoria.</li>
+        <li>Intervalo: mínimo de 1 hora (máximo de 2, salvo acordo ou convenção) para jornadas acima de 6 horas, e de 15 minutos para jornadas entre 4 e 6 horas.</li>
+        <li>Descanso entre jornadas: no mínimo 11 horas entre a saída e a próxima entrada; após folga, 11 horas mais 24 horas por dia de folga.</li>
+        <li>Folgas: 1 descanso semanal hoje e 2 dias de descanso remunerado por semana nas novas regras, preferencialmente com um deles no domingo, sem passar de 6 dias seguidos de trabalho.</li>
+        <li>Trabalho noturno (22h às 5h): tem regras próprias e precisa ser analisado com a Razonet. As horas mostradas já consideram a hora noturna reduzida (52 minutos e 30 segundos).</li>
+        <li>Prazo das 42 h: quem adotar 42 h precisa passar para 40 h em até 12 meses, contados do início da nova jornada.</li>
+        <li>Escala 12x36 e jornadas já reduzidas: por enquanto mantêm a jornada atual e muda apenas o divisor para 200 h/mês, quando o atual for maior. A 12x36 precisará ser revisada até 16/12/2027 para ficar dentro das 40 h semanais, com o sindicato da categoria.</li>
+        <li>A convenção coletiva da categoria pode trazer regras próprias de escala, compensação e trabalho aos domingos e feriados, e deve ser conferida.</li>
+      </ul>
+    </details>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Simulação de caráter orientativo, elaborada pela Razonet Contabilidade Digital com base na Emenda Constitucional nº 141/2026 (PEC 221/2019), promulgada em 16/10/2026, e na CLT. Não substitui a análise do contrato de trabalho e da convenção coletiva aplicável.</p>
+    <p>Definiu a nova escala? Envie ao Departamento Pessoal da Razonet para atualizar cadastros e folha.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const KEY='razonet-escala-v1';
+  const DAYS=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  const SH=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  const LBL={ent:'Entrada',ii:'Saída para intervalo',fi:'Volta do intervalo',sai:'Saída'};
+  const RULES={
+    hoje:{nome:'Hoje',sub:'44 h, divisor 220',h:44,d:220,folgas:1},
+    e1:{nome:'Etapa 1',sub:'42 h, divisor 210',h:42,d:210,folgas:2},
+    e2:{nome:'Etapa 2',sub:'40 h, divisor 200',h:40,d:200,folgas:2}
+  };
+  const W=(e,i,f,s)=>({on:true,ent:e,ii:i,fi:f,sai:s});
+  const O=()=>({on:false,ent:'08:00',ii:'12:00',fi:'13:00',sai:'17:00'});
+  const TPL=[
+    {nome:'Segunda a sexta, 8h48 por dia',sub:'Como é hoje, 44 h, sábado compensado',regra:'hoje',w:()=>{const d=W('08:00','12:00','13:00','17:48');return [[d,d,d,d,d,0,0]];}},
+    {nome:'Segunda a sexta, 8h24 por dia',sub:'Etapa 1, 42 h, folga sábado e domingo',regra:'e1',w:()=>{const d=W('08:00','12:00','13:00','17:24');return [[d,d,d,d,d,0,0]];}},
+    {nome:'Segunda a sexta, 8h por dia',sub:'Etapa 2, 40 h, folga sábado e domingo',regra:'e2',w:()=>{const d=W('08:00','12:00','13:00','17:00');return [[d,d,d,d,d,0,0]];}},
+    {nome:'Segunda a sábado, folga na quarta',sub:'Etapa 1, 42 h, folga domingo e um dia útil',regra:'e1',w:()=>{const d=W('08:00','12:00','13:00','17:24');return [[d,d,0,d,d,d,0]];}},
+    {nome:'Sábado alternado',sub:'Etapa 2, 40 h, revezamento de 2 semanas',regra:'e2',w:()=>{const d=W('08:00','12:00','13:00','17:00');return [[d,d,d,d,d,0,0],[d,d,0,d,d,d,0]];}}
+  ];
+  const build=t=>t.w().map(wk=>wk.map(x=>x?{...x}:O()));
+
+  let st=null;
+  try{ const r=localStorage.getItem(KEY); st=r?JSON.parse(r):null; }catch(e){}
+  if(!st||!Array.isArray(st.weeks)||!st.weeks.length||!RULES[st.regra]) st={regra:'e1',weeks:build(TPL[1]),cur:0};
+  if(st.cur>=st.weeks.length) st.cur=0;
+  const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(st)); }catch(e){} };
+
+  const $=id=>document.getElementById(id);
+  const tm=s=>{ if(!s) return null; const p=s.split(':').map(Number); return (p.length===2&&isFinite(p[0])&&isFinite(p[1])&&p[0]>=0&&p[0]<24&&p[1]>=0&&p[1]<60)?p[0]*60+p[1]:null; };
+  const hm=m=>{ m=Math.round(m); const s=m<0?'−':''; m=Math.abs(m); return s+Math.floor(m/60)+'h'+String(m%60).padStart(2,'0'); };
+  const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+  const nf=(v,d=1)=>v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+
+  function dayCalc(d){
+    if(!d.on) return {on:false};
+    let e=tm(d.ent), s=tm(d.sai);
+    if(e==null||s==null) return {on:true,bad:'informe a entrada e a saída no formato 24 horas (ex.: 08:00 e 17:00).',worked:0,comp:0,intv:0,night:0,segs:[],e:0,s:0};
+    if(s<=e) s+=1440;
+    let i1=tm(d.ii), i2=tm(d.fi), intv=0, segs=[[e,s]], badInt=null;
+    if(i1!=null&&i2!=null&&i1!==i2){
+      if(i1<e) i1+=1440; if(i2<i1) i2+=1440;
+      if(i1>e&&i2<s){ segs=[[e,i1],[i2,s]]; intv=i2-i1; }
+      else badInt='o intervalo está fora do horário de trabalho.';
+    } else if((i1==null)!==(i2==null)) badInt='preencha a saída e a volta do intervalo, ou deixe as duas em branco.';
+    const worked=segs.reduce((a,[x,y])=>a+y-x,0);
+    let night=0;
+    segs.forEach(([x,y])=>[[0,300],[1320,1740],[2760,3180]].forEach(([a,b])=>{ night+=Math.max(0,Math.min(y,b)-Math.max(x,a)); }));
+    return {on:true,e,s,segs,worked,intv,night,comp:worked+night/7,badInt};
+  }
+
+  function analyze(){
+    const R=RULES[st.regra], msgs=[], add=(lvl,txt)=>msgs.push({lvl,txt});
+    const Wn=st.weeks.length;
+    const wk=st.weeks.map(w=>w.map(dayCalc));
+    const lab=(wi,di)=>(Wn>1?`semana ${wi+1}, `:'')+DAYS[di].toLowerCase();
+    const weekTot=wk.map(w=>w.reduce((a,d)=>a+(d.on&&!d.bad?d.comp:0),0));
+    const weekFol=wk.map(w=>w.filter(d=>!d.on).length);
+
+    wk.forEach((w,wi)=>w.forEach((d,di)=>{
+      if(!d.on) return;
+      const L=cap(lab(wi,di));
+      if(d.bad){ add('erro',`${L}: ${d.bad}`); return; }
+      if(d.badInt) add('erro',`${L}: ${d.badInt}`);
+      if(d.comp>480) add('erro',`${L}: ${hm(d.comp)} de trabalho, acima de 8 horas. Jornadas com compensação precisam ser aprovadas por acordo coletivo. Verifique com o sindicato da categoria.`);
+      if(!d.badInt){
+        if(d.worked>360){
+          if(d.intv<60) add('erro',`${L}: jornada acima de 6 horas exige intervalo mínimo de 1 hora${d.intv?` (está com ${d.intv} min)`:' (está sem intervalo)'}.`);
+          else if(d.intv>120) add('erro',`${L}: intervalo de ${hm(d.intv)}, acima de 2 horas. Reduza o intervalo ou fale com a Razonet, pois depende de acordo.`);
+        } else if(d.worked>240&&d.intv<15) add('erro',`${L}: jornada entre 4 e 6 horas exige intervalo de 15 minutos.`);
+      }
+    }));
+
+    wk.forEach((w,wi)=>{
+      const tot=weekTot[wi], fol=weekFol[wi], pre=Wn>1?`Semana ${wi+1}: `:'';
+      if(tot>R.h*60+0.5) add('erro',`${pre}${hm(tot)} na semana, acima do limite de ${R.h} horas. O excedente de ${hm(tot-R.h*60)} seria hora extra.`);
+      else if(st.regra!=='hoje'&&tot<R.h*60-0.5) add('aviso',`${pre}${hm(tot)} na semana, ${hm(R.h*60-tot)} abaixo de ${R.h} horas. Para o termo aditivo, a semana deve fechar exatamente ${R.h}h00.`);
+      else add('ok',`${pre}${hm(tot)} na semana, dentro do limite de ${R.h} horas.`);
+      if(fol<R.folgas) add('erro',`${pre}${fol===0?'nenhuma folga':fol+' folga'} na semana. ${st.regra==='hoje'?'É obrigatório ao menos 1 descanso semanal.':'As novas regras preveem 2 dias de descanso remunerado por semana.'}`);
+      else add('ok',`${pre}${fol} ${fol===1?'dia':'dias'} de folga na semana.`);
+    });
+
+    const sun=wk.filter(w=>!w[6].on).length;
+    if(sun===0) add('aviso','Nenhum domingo de folga na escala. O descanso deve ser preferencialmente no domingo e, no comércio, é obrigatório ao menos um domingo de folga a cada três semanas.');
+    else if(sun<Wn) add('info',`Folga em ${sun} de ${Wn} domingos do ciclo. No comércio, é obrigatório ao menos um domingo de folga a cada três semanas.`);
+    else add('ok','Folga em todos os domingos.');
+
+    const flat=wk.flat(), n=flat.length;
+    if(flat.every(d=>d.on)) add('erro','Não há nenhum dia de folga na escala.');
+    else{
+      let run=0,max=0;
+      for(let k=0;k<2*n;k++){ if(flat[k%n].on){ run++; max=Math.max(max,run); } else run=0; }
+      max=Math.min(max,n);
+      if(max>6) add('erro',`${max} dias seguidos de trabalho. O descanso semanal deve acontecer no máximo depois de 6 dias de trabalho.`);
+      let restOk=true;
+      for(let i=0;i<n;i++){
+        const d=flat[i]; if(!d.on||d.bad) continue;
+        let k=1; while(!flat[(i+k)%n].on) k++;
+        const nx=flat[(i+k)%n]; if(nx.bad) continue;
+        const rest=k*1440+nx.e-d.s, gap=k-1, need=660+1440*gap;
+        if(rest<need){
+          restOk=false;
+          const L=cap(lab(Math.floor(i/7),i%7));
+          add('erro',gap===0?`${L}: só ${hm(rest)} de descanso até a próxima entrada. O mínimo entre jornadas é de 11 horas.`
+            :`${L}: descanso de ${hm(rest)} até a volta da folga. O mínimo é de ${hm(need)} (11 horas entre jornadas mais 24 horas por dia de folga).`);
+        }
+      }
+      if(restOk) add('ok','Descanso de 11 horas entre jornadas respeitado.');
+    }
+
+    const nightTot=flat.reduce((a,d)=>a+(d.on&&!d.bad?d.night:0),0);
+    if(nightTot>0) add('erro',`A escala tem ${hm(nightTot)} de trabalho entre 22h e 5h por ciclo. Horários noturnos têm regras próprias (adicional e hora reduzida) e precisam ser analisados com a Razonet.`);
+    if(st.regra==='e1') add('aviso','Com 42 horas, será preciso um novo termo aditivo para 40 horas em até 12 meses, contados do início da nova jornada. Adotar 40 horas agora evita uma segunda alteração.');
+
+    const avg=weekTot.reduce((a,b)=>a+b,0)/Wn;
+    const folAvg=weekFol.reduce((a,b)=>a+b,0)/Wn;
+    return {R,wk,weekTot,weekFol,msgs,avg,folAvg,nightTot};
+  }
+
+  function renderRules(){
+    $('rules').innerHTML=Object.entries(RULES).map(([k,r])=>`<button type="button" data-r="${k}" aria-pressed="${st.regra===k}">${r.nome}<small>${r.sub}</small></button>`).join('')+'<a class="x12" href="#escala-12x36">12x36 ↓<small>Plantão de 12 h e folga de 36 h</small></a>';
+  }
+  $('rules').addEventListener('click',e=>{ const b=e.target.closest('[data-r]'); if(!b) return; st.regra=b.dataset.r; renderRules(); refresh(); });
+
+  $('tpls').innerHTML=TPL.map((t,i)=>`<button type="button" class="tpl" data-t="${i}"><b>${t.nome}</b><span>${t.sub}</span></button>`).join('');
+  $('tpls').addEventListener('click',e=>{ const b=e.target.closest('[data-t]'); if(!b) return; const t=TPL[+b.dataset.t]; st.weeks=build(t); st.regra=t.regra; st.cur=0; renderRules(); renderAll(); });
+
+  function renderTabs(){
+    $('wtabs').innerHTML=st.weeks.map((_,i)=>`<button type="button" data-w="${i}" aria-pressed="${st.cur===i}">Semana ${i+1}</button>`).join('');
+    $('addW').disabled=st.weeks.length>=4;
+    $('delW').disabled=st.weeks.length<=1;
+  }
+  $('wtabs').addEventListener('click',e=>{ const b=e.target.closest('[data-w]'); if(!b) return; st.cur=+b.dataset.w; renderAll(); });
+  $('addW').addEventListener('click',()=>{ if(st.weeks.length>=4) return; st.weeks.push(st.weeks[st.cur].map(d=>({...d}))); st.cur=st.weeks.length-1; renderAll(); });
+  $('delW').addEventListener('click',()=>{ if(st.weeks.length<=1) return; st.weeks.splice(st.cur,1); st.cur=Math.max(0,st.cur-1); renderAll(); });
+
+  function renderEditor(){
+    const w=st.weeks[st.cur];
+    $('days').innerHTML=w.map((d,i)=>`<tr class="${d.on?'':'off'}">
+      <th scope="row">${DAYS[i]}</th>
+      <td><label class="sw"><input type="checkbox" data-i="${i}" data-k="on" ${d.on?'checked':''}><span>${d.on?'Trabalho':'Folga'}</span></label></td>
+      ${['ent','ii','fi','sai'].map(k=>`<td><input type="text" class="hr" inputmode="numeric" maxlength="5" placeholder="hh:mm" data-i="${i}" data-k="${k}" value="${d[k]||''}" ${d.on?'':'disabled'} aria-label="${LBL[k]}, ${DAYS[i]}, formato 24 horas"></td>`).join('')}
+      <td class="n hrs" id="h${i}"></td></tr>`).join('');
+  }
+  $('days').addEventListener('input',e=>{
+    const t=e.target, k=t.dataset.k; if(!k) return;
+    const d=st.weeks[st.cur][+t.dataset.i];
+    if(k==='on'){ d.on=t.checked; renderEditor(); }
+    else { let v=t.value.replace(/\D/g,'').slice(0,4); if(v.length>2) v=v.slice(0,2)+':'+v.slice(2); if(t.value!==v) t.value=v; d[k]=v; }
+    refresh();
+  });
+  $('days').addEventListener('change',e=>{
+    const t=e.target, k=t.dataset.k; if(!k||k==='on') return;
+    const d=st.weeks[st.cur][+t.dataset.i], g=t.value.replace(/\D/g,'');
+    if(!g){ d[k]=''; refresh(); return; }
+    let h,m;
+    if(g.length<=2){ h=g; m='00'; } else if(g.length===3){ h=g[0]; m=g.slice(1); } else { h=g.slice(0,2); m=g.slice(2,4); }
+    const v=h.padStart(2,'0')+':'+m; t.value=v; d[k]=v; refresh();
+  });
+  $('copyMon').addEventListener('click',()=>{
+    const w=st.weeks[st.cur], m=w[0];
+    w.forEach((d,i)=>{ if(i&&d.on){ d.ent=m.ent; d.ii=m.ii; d.fi=m.fi; d.sai=m.sai; } });
+    renderEditor(); refresh();
+  });
+
+  function renderTimeline(a){
+    const days=a.wk[st.cur], pc=m=>(m/1440*100)+'%';
+    $('tl').innerHTML=days.map((d,i)=>{
+      let inner='';
+      if(d.on&&!d.bad){
+        inner+=`<div class="nz" style="left:0;width:${pc(300)}"></div><div class="nz" style="left:${pc(1320)};width:${pc(120)}"></div>`;
+        [6,12,18].forEach(h=>inner+=`<div class="gl" style="left:${pc(h*60)}"></div>`);
+        d.segs.forEach(([x,y])=>{
+          const parts=y<=1440?[[x,y]]:(x>=1440?[[x-1440,y-1440]]:[[x,1440],[0,y-1440]]);
+          parts.forEach(([p,q])=>inner+=`<div class="wk" style="left:${pc(p)};width:${pc(q-p)}"></div>`);
+        });
+      }
+      return `<div class="tlr"><div class="dl">${SH[i]}</div><div class="track${d.on?'':' off'}">${inner}</div><div class="dh">${d.on?(d.bad?'–':hm(d.comp)):''}</div></div>`;
+    }).join('')+`<div class="axis"><div></div><div class="ax">${[0,6,12,18,24].map(h=>`<span style="left:${h/24*100}%">${h}h</span>`).join('')}</div><div></div></div>`;
+  }
+
+  function refresh(){
+    save();
+    const a=analyze(), R=a.R;
+    // horas por dia na tabela
+    a.wk[st.cur].forEach((d,i)=>{ const c=$('h'+i); if(!c) return; c.textContent=d.on?(d.bad?'–':hm(d.comp)):'Folga'; c.className='n hrs'+(d.on&&!d.bad&&d.comp>480?' warn':''); });
+    const wt=a.weekTot[st.cur];
+    $('wtot').textContent=hm(wt)+' de '+R.h+'h00';
+
+    const errs=a.msgs.filter(m=>m.lvl==='erro').length, avs=a.msgs.filter(m=>m.lvl==='aviso').length;
+    $('status').innerHTML=`<div class="big">${hm(a.avg)}<small>por semana${st.weeks.length>1?' (média)':''}, limite de ${R.h} h</small></div>
+      <span class="pill ${errs?'bad':'ok'}">${errs?errs+(errs===1?' irregularidade':' irregularidades'):'Escala dentro das regras'}${avs?`, ${avs} ${avs===1?'ponto':'pontos'} de atenção`:''}</span>`;
+
+    $('ruleLead').textContent=`Conferência pela regra ${R.nome.toLowerCase()}: até ${R.h} horas semanais, divisor ${R.d} e ${R.folgas===1?'1 descanso semanal':'2 dias de descanso remunerado por semana'}.`;
+    const mens=a.avg*5;
+    $('kpis').innerHTML=`
+      <div class="kpi"><p>Horas na semana${st.weeks.length>1?' (média)':''}</p><strong>${hm(a.avg)}</strong><p>Limite de ${R.h}h00</p></div>
+      <div class="kpi"><p>Horas no mês (média semanal × 5)</p><strong>${hm(mens)}</strong><p>Divisor de referência: ${R.d} h</p></div>
+      <div class="kpi"><p>Folgas por semana${st.weeks.length>1?' (média)':''}</p><strong>${nf(a.folAvg,a.folAvg%1?1:0)}</strong><p>Mínimo de ${R.folgas}</p></div>
+      <div class="kpi"><p>Trabalho noturno no ciclo</p><strong>${a.nightTot?hm(a.nightTot):'Nenhum'}</strong><p>Das 22h às 5h</p></div>`;
+
+    const ord={erro:0,aviso:1,info:2,ok:3}, nm={erro:'Irregular',aviso:'Atenção',info:'Informação',ok:'Ok'};
+    $('checks').innerHTML=a.msgs.slice().sort((x,y)=>ord[x.lvl]-ord[y.lvl]).map(m=>`<li class="${m.lvl}"><span class="lv">${nm[m.lvl]}</span><span>${m.txt}</span></li>`).join('');
+
+    if(st.weeks.length>1){
+      $('calWrap').innerHTML=`<h3 style="margin-top:24px">Ciclo de revezamento</h3><div class="scroll"><table class="cal"><thead><tr><th>Semana</th>${SH.map(s=>`<th>${s}</th>`).join('')}<th class="n">Total</th></tr></thead><tbody>${
+        a.wk.map((w,wi)=>`<tr><th scope="row">Semana ${wi+1}</th>${w.map(d=>d.on?`<td>${d.bad?'–':hm(d.comp)}</td>`:'<td class="f">Folga</td>').join('')}<td class="n t">${hm(a.weekTot[wi])}</td></tr>`).join('')
+      }</tbody></table></div><p class="note">O ciclo se repete. Para o mês, considere a sequência das semanas a partir da data de início da escala.</p>`;
+    } else $('calWrap').innerHTML='';
+
+    renderTimeline(a);
+  }
+
+  function renderAll(){ renderTabs(); renderEditor(); refresh(); }
+  renderRules();
+  renderAll();
+})();
+</script>
+<script>
+(function(){
+  const KEY='razonet-12x36-v1';
+  let s={ent:'07:00',sai:'19:00',ii:'12:00',fi:'13:00',dia:0,sal:2200,div:220};
+  try{ const r=localStorage.getItem(KEY); if(r) s=Object.assign(s,JSON.parse(r)); }catch(e){}
+  const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){} };
+  const $=id=>document.getElementById(id);
+  const tm=v=>{ const p=String(v||'').split(':').map(Number); return (p.length===2&&isFinite(p[0])&&isFinite(p[1])&&p[0]>=0&&p[0]<24&&p[1]>=0&&p[1]<60)?p[0]*60+p[1]:null; };
+  const hm=m=>{ m=Math.round(m); return Math.floor(m/60)+'h'+String(m%60).padStart(2,'0'); };
+  const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const nf=(v,d=1)=>v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const SH=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  $('x_ent').value=s.ent; $('x_sai').value=s.sai; $('x_ii').value=s.ii||''; $('x_fi').value=s.fi||''; $('x_dia').value=s.dia; $('x_sal').value=s.sal; $('x_div').value=s.div;
+  const KM={x_ent:'ent',x_sai:'sai',x_ii:'ii',x_fi:'fi'};
+  Object.keys(KM).forEach(id=>{
+    const k=KM[id], el=$(id);
+    el.addEventListener('input',()=>{ let v=el.value.replace(/\D/g,'').slice(0,4); if(v.length>2) v=v.slice(0,2)+':'+v.slice(2); if(el.value!==v) el.value=v; s[k]=v; calc(); });
+    el.addEventListener('change',()=>{ const g=el.value.replace(/\D/g,''); if(!g){ s[k]=''; calc(); return; } let h,m; if(g.length<=2){h=g;m='00';} else if(g.length===3){h=g[0];m=g.slice(1);} else {h=g.slice(0,2);m=g.slice(2,4);} el.value=h.padStart(2,'0')+':'+m; s[k]=el.value; calc(); });
+  });
+  [['x_sal','sal'],['x_div','div']].forEach(([id,k])=>$(id).addEventListener('input',e=>{ const n=parseFloat(String(e.target.value).replace(',','.')); s[k]=isFinite(n)?n:0; calc(); }));
+  $('x_dia').addEventListener('change',e=>{ s.dia=+e.target.value; calc(); });
+
+  function calc(){
+    save();
+    const msgs=[], add=(lvl,txt)=>msgs.push({lvl,txt});
+    const e=tm(s.ent), f=tm(s.sai);
+    if(e==null||f==null){
+      $('x_kpis').innerHTML=''; $('x_cal').innerHTML=''; $('x_dica').innerHTML='<p>Informe a entrada e a saída do plantão no formato 24 horas (ex.: 07:00 e 19:00).</p>';
+      $('x_checks').innerHTML=''; return;
+    }
+    let span=f-e; if(span<=0) span+=1440;
+    let i1=tm(s.ii), i2=tm(s.fi), iv=0, segs=[[e,e+span]], badInt='';
+    if(i1!=null&&i2!=null&&i1!==i2){
+      if(i1<e) i1+=1440; if(i2<i1) i2+=1440;
+      if(i1>e&&i2<e+span){ segs=[[e,i1],[i2,e+span]]; iv=i2-i1; } else badInt='O intervalo está fora do horário do plantão.';
+    } else if((s.ii&&!s.fi)||(!s.ii&&s.fi)) badInt='Preencha a saída e a volta do intervalo, ou deixe as duas em branco.';
+    const worked=span-iv;
+    let night=0; segs.forEach(([x,y])=>[[0,300],[1320,1740],[2760,3180]].forEach(([a,b])=>{ night+=Math.max(0,Math.min(y,b)-Math.max(x,a)); }));
+    const prorr=(e<=1320&&e+span>=1740)?Math.max(0,e+span-1740):0;
+    const comp=worked+night/7;
+    const semana=comp*3.5/60, mes=comp*(365/24)/60;
+    if(span!==720) add('aviso',`O turno tem ${hm(span)}. Na escala 12x36, o plantão é de 12 horas seguidas, com 36 horas de descanso.`);
+    if(badInt) add('erro',badInt);
+    else if(iv===0) add('info','Sem intervalo informado: ele é considerado indenizado (pago), e todas as horas do plantão contam como trabalhadas.');
+    else if(iv<60) add('aviso',`Intervalo de ${iv} minutos. O mínimo é de 1 hora; o tempo que faltar deve ser indenizado.`);
+    else if(iv>120) add('aviso',`Intervalo de ${hm(iv)}, acima de 2 horas. Depende de acordo; verifique com o sindicato da categoria.`);
+    if(semana<=42.0001) add('ok',`1ª etapa (a partir de 16/12/2026): média de ${hm(semana*60)} por semana, dentro de 42 h.`);
+    else add('erro',`1ª etapa (a partir de 16/12/2026): média de ${hm(semana*60)} por semana, acima de 42 h. Ajuste a escala com o sindicato da categoria.`);
+    if(semana<=40.0001) add('ok',`2ª etapa (a partir de 16/12/2027): média de ${hm(semana*60)} por semana, dentro de 40 h.`);
+    else add('aviso',`2ª etapa (a partir de 16/12/2027): média de ${hm(semana*60)} por semana, acima de 40 h. A escala precisará ser revisada até 16/12/2027, com o sindicato da categoria.`);
+    add('ok','Folgas: a escala alterna semanas com 3 e 4 dias de descanso, acima dos 2 dias semanais exigidos.');
+    if(night+prorr>0) add('info',`${hm(night+prorr)} de trabalho noturno por plantão${prorr?`, incluindo ${hm(prorr)} de prorrogação após as 5h`:''}. Essas horas têm adicional noturno de no mínimo 20% e hora reduzida.`);
+    add('info','A 12x36 depende de previsão em acordo ou convenção coletiva. Verifique com o sindicato da categoria e acompanhe uma possível nova legislação para jornadas diferenciadas e setores essenciais.');
+
+    const div=s.div>0?s.div:220, h0=s.sal/div, h1=s.sal/200;
+    $('x_kpis').innerHTML=`
+      <div class="kpi"><p>Horas por plantão</p><strong>${hm(comp)}</strong><p>Turno de ${hm(span)}, ${iv?'intervalo de '+hm(iv):'sem intervalo'}: ${hm(worked)} no relógio${night?`, mais ${Math.round(night/7)} min da hora noturna reduzida`:''}</p></div>
+      <div class="kpi"><p>Média semanal</p><strong>${hm(semana*60)}</strong><p>Limites: 42 h e, depois, 40 h</p></div>
+      <div class="kpi"><p>Horas no mês (média)</p><strong>${hm(mes*60)}</strong><p>Cerca de ${nf(365/24,1)} plantões por mês</p></div>
+      <div class="kpi"><p>Valor da hora</p><strong>${div>200?brl(h0)+' → '+brl(h1):brl(h0)}</strong><p>${div>200?`Divisor ${nf(div,0)} → 200 (+${nf((div/200-1)*100,1)}%)`:'Divisor atual já é 200 ou menor: não muda'}</p></div>`;
+
+    const ord={erro:0,aviso:1,info:2,ok:3}, nm={erro:'Irregular',aviso:'Atenção',info:'Informação',ok:'Ok'};
+    $('x_checks').innerHTML=msgs.sort((a,b)=>ord[a.lvl]-ord[b.lvl]).map(m=>`<li class="${m.lvl}"><span class="lv">${nm[m.lvl]}</span><span>${m.txt}</span></li>`).join('');
+
+    let rows='';
+    for(let w=0;w<4;w++){
+      let cells='', n=0;
+      for(let d=0;d<7;d++){ const i=w*7+d, on=(((i-s.dia)%2)+2)%2===0; if(on) n++; cells+=on?`<td>${hm(comp)}</td>`:'<td class="f">Folga</td>'; }
+      rows+=`<tr><th scope="row">Semana ${w+1}</th>${cells}<td class="n t">${hm(n*comp)}</td></tr>`;
+    }
+    $('x_cal').innerHTML=`<thead><tr><th>Semana</th>${SH.map(x=>`<th>${x}</th>`).join('')}<th class="n">Total</th></tr></thead><tbody>${rows}</tbody>`;
+
+    if(semana>40.0001){
+      const maxTurno=40/3.5*60, extra=365/24-(40*365/7/12)/(comp/60);
+      $('x_dica').innerHTML=`<p><strong>Para ficar em 40 h por semana na média</strong>, o plantão pode ter no máximo ${hm(maxTurno)} trabalhadas (por exemplo, com mais tempo de intervalo concedido), ou a escala precisa de cerca de ${nf(extra,1)} folga extra por mês.</p><p>Qualquer mudança depende de negociação com o sindicato da categoria.</p>`;
+    } else {
+      $('x_dica').innerHTML='<p><strong>A média já fica dentro de 40 h semanais.</strong> Confirme a escala com o sindicato da categoria e mantenha o acordo coletivo atualizado.</p>';
+    }
+  }
+  calc();
+})();
+</script>
+</body>
+</html>
