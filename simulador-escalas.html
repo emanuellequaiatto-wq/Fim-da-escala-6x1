@@ -238,23 +238,23 @@ footer p{margin:0 0 4px;opacity:.85}
   <section class="block" aria-labelledby="s4">
     <h2 id="s4">Regras usadas na conferência</h2>
     <div class="callout">
-      <p><strong>A Emenda Constitucional nº 141/2026 foi promulgada em 16/10/2026.</strong> As empresas têm 60 dias, contados da publicação no Diário Oficial (meados de dezembro de 2026), para adotar as 2 folgas semanais e a jornada de 42 h. A jornada de 40 h passa a valer 12 meses depois. Já é possível adotar 40 horas desde agora, sem reduzir o salário e com aditivo contratual.</p>
+      <p><strong>Novas datas: 42 h a partir de 16/12/2026 e 40 h a partir de 16/12/2027.</strong> Pela decisão liminar do STF de 12/11/2026, sem acordo coletivo as 42 h podem ser feitas em 5 dias de 8h24, sem hora extra sobre os 24 minutos, até 15/12/2027. Já é possível adotar 40 horas desde agora, sem reduzir o salário e com aditivo contratual.</p>
     </div>
     <div class="callout">
-      <p><strong>Escala 12x36 ou jornada já reduzida?</strong> Por enquanto, a jornada atual é mantida e muda apenas o divisor para 200 h/mês, quando o atual for maior. A escala 12x36 também precisará ser revisada até 16/12/2027 para ficar dentro das 40 h semanais: verifique com o sindicato da categoria. Fique atento ainda a uma possível nova legislação para jornadas diferenciadas e setores essenciais.</p>
+      <p><strong>Escala 12x36 ou jornada já reduzida?</strong> Por enquanto, a jornada atual é mantida e muda apenas o divisor para 200 h/mês, quando o atual for maior. A escala 12x36 também precisará ser revisada até 15/12/2027 para ficar dentro das 40 h semanais: verifique com o sindicato da categoria. O STF determinou uma lei específica para regimes diferenciados em até 180 dias.</p>
     </div>
     <details open>
       <summary>O que o simulador confere</summary>
       <ul>
         <li>Jornada semanal: até 44 h hoje, 42 h na etapa 1 e 40 h na etapa 2, em cada semana do ciclo. Para o termo aditivo, a semana deve fechar exatamente 42 h ou 40 h.</li>
         <li>Jornada mensal de referência: média semanal × 5, comparada com o divisor (220, 210 ou 200 horas).</li>
-        <li>Jornada diária: até 8 horas. De segunda a sexta, 42 h correspondem a 8h24 por dia e 40 h a 8h00 por dia. Jornadas com compensação precisam ser aprovadas por acordo coletivo; verifique com o sindicato da categoria.</li>
+        <li>Jornada diária: até 8 horas. Na etapa 1 (42 h), até 8h24 por dia em 5 dias é permitido sem hora extra até 15/12/2027, mesmo sem acordo coletivo (decisão liminar do STF). Outras compensações precisam ser aprovadas por acordo coletivo; verifique com o sindicato da categoria.</li>
         <li>Intervalo: mínimo de 1 hora (máximo de 2, salvo acordo ou convenção) para jornadas acima de 6 horas, e de 15 minutos para jornadas entre 4 e 6 horas.</li>
         <li>Descanso entre jornadas: no mínimo 11 horas entre a saída e a próxima entrada; após folga, 11 horas mais 24 horas por dia de folga.</li>
         <li>Folgas: 1 descanso semanal hoje e 2 dias de descanso remunerado por semana nas novas regras, preferencialmente com um deles no domingo, sem passar de 6 dias seguidos de trabalho.</li>
         <li>Trabalho noturno (22h às 5h): tem regras próprias e precisa ser analisado com a Razonet. As horas mostradas já consideram a hora noturna reduzida (52 minutos e 30 segundos).</li>
-        <li>Prazo das 42 h: quem adotar 42 h precisa passar para 40 h em até 12 meses, contados do início da nova jornada.</li>
-        <li>Escala 12x36 e jornadas já reduzidas: por enquanto mantêm a jornada atual e muda apenas o divisor para 200 h/mês, quando o atual for maior. A 12x36 precisará ser revisada até 16/12/2027 para ficar dentro das 40 h semanais, com o sindicato da categoria.</li>
+        <li>Prazo das 42 h: a jornada de 40 h vale para todos a partir de 16/12/2027.</li>
+        <li>Escala 12x36 e jornadas já reduzidas: por enquanto mantêm a jornada atual e muda apenas o divisor para 200 h/mês, quando o atual for maior. A 12x36 precisará ser revisada até 15/12/2027 para ficar dentro das 40 h semanais, com o sindicato da categoria.</li>
         <li>A convenção coletiva da categoria pode trazer regras próprias de escala, compensação e trabalho aos domingos e feriados, e deve ser conferida.</li>
       </ul>
     </details>
@@ -332,7 +332,8 @@ footer p{margin:0 0 4px;opacity:.85}
       const L=cap(lab(wi,di));
       if(d.bad){ add('erro',`${L}: ${d.bad}`); return; }
       if(d.badInt) add('erro',`${L}: ${d.badInt}`);
-      if(d.comp>480) add('erro',`${L}: ${hm(d.comp)} de trabalho, acima de 8 horas. Jornadas com compensação precisam ser aprovadas por acordo coletivo. Verifique com o sindicato da categoria.`);
+      if(st.regra==='e1'&&d.comp<=504){ if(d.comp>480) add('info',`${L}: ${hm(d.comp)} de trabalho. Na etapa 1, até 8h24 por dia é permitido sem hora extra até 15/12/2027, mesmo sem acordo coletivo (decisão liminar do STF).`); }
+      else if(d.comp>480) add('erro',`${L}: ${hm(d.comp)} de trabalho, acima de ${st.regra==='e1'?'8h24':'8 horas'}. Jornadas com compensação precisam ser aprovadas por acordo coletivo. Verifique com o sindicato da categoria.`);
       if(!d.badInt){
         if(d.worked>360){
           if(d.intv<60) add('erro',`${L}: jornada acima de 6 horas exige intervalo mínimo de 1 hora${d.intv?` (está com ${d.intv} min)`:' (está sem intervalo)'}.`);
@@ -380,7 +381,7 @@ footer p{margin:0 0 4px;opacity:.85}
 
     const nightTot=flat.reduce((a,d)=>a+(d.on&&!d.bad?d.night:0),0);
     if(nightTot>0) add('erro',`A escala tem ${hm(nightTot)} de trabalho entre 22h e 5h por ciclo. Horários noturnos têm regras próprias (adicional e hora reduzida) e precisam ser analisados com a Razonet.`);
-    if(st.regra==='e1') add('aviso','Com 42 horas, será preciso um novo termo aditivo para 40 horas em até 12 meses, contados do início da nova jornada. Adotar 40 horas agora evita uma segunda alteração.');
+    if(st.regra==='e1') add('aviso','Com 42 horas, a jornada precisa passar para 40 horas a partir de 16/12/2027, com novo termo aditivo. Adotar 40 horas agora evita uma segunda alteração.');
 
     const avg=weekTot.reduce((a,b)=>a+b,0)/Wn;
     const folAvg=weekFol.reduce((a,b)=>a+b,0)/Wn;
@@ -535,7 +536,7 @@ footer p{margin:0 0 4px;opacity:.85}
     if(semana<=42.0001) add('ok',`1ª etapa (a partir de 16/12/2026): média de ${hm(semana*60)} por semana, dentro de 42 h.`);
     else add('erro',`1ª etapa (a partir de 16/12/2026): média de ${hm(semana*60)} por semana, acima de 42 h. Ajuste a escala com o sindicato da categoria.`);
     if(semana<=40.0001) add('ok',`2ª etapa (a partir de 16/12/2027): média de ${hm(semana*60)} por semana, dentro de 40 h.`);
-    else add('aviso',`2ª etapa (a partir de 16/12/2027): média de ${hm(semana*60)} por semana, acima de 40 h. A escala precisará ser revisada até 16/12/2027, com o sindicato da categoria.`);
+    else add('aviso',`2ª etapa (a partir de 16/12/2027): média de ${hm(semana*60)} por semana, acima de 40 h. A escala precisará ser revisada até 15/12/2027, com o sindicato da categoria.`);
     add('ok','Folgas: a escala alterna semanas com 3 e 4 dias de descanso, acima dos 2 dias semanais exigidos.');
     if(night+prorr>0) add('info',`${hm(night+prorr)} de trabalho noturno por plantão${prorr?`, incluindo ${hm(prorr)} de prorrogação após as 5h`:''}. Essas horas têm adicional noturno de no mínimo 20% e hora reduzida.`);
     add('info','A 12x36 depende de previsão em acordo ou convenção coletiva. Verifique com o sindicato da categoria e acompanhe uma possível nova legislação para jornadas diferenciadas e setores essenciais.');
