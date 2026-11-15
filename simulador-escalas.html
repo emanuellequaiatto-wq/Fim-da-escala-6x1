@@ -238,7 +238,7 @@ footer p{margin:0 0 4px;opacity:.85}
   <section class="block" aria-labelledby="s4">
     <h2 id="s4">Regras usadas na conferência</h2>
     <div class="callout">
-      <p><strong>Novas datas: 42 h a partir de 16/12/2026 e 40 h a partir de 16/12/2027.</strong> Pela decisão liminar do STF de 12/11/2026, sem acordo coletivo as 42 h podem ser feitas em 5 dias de 8h24, sem hora extra sobre os 24 minutos, até 15/12/2027. Já é possível adotar 40 horas desde agora, sem reduzir o salário e com aditivo contratual.</p>
+      <p><strong>Novas datas: 42 h a partir de 16/12/2026 e 40 h a partir de 16/12/2027.</strong> Pela decisão liminar do STF de 12/11/2026, se não houver acordo ou convenção coletiva firmados até 15/12/2026, as 42 h podem ser feitas em 5 dias de 8h24, sem hora extra sobre os 24 minutos, até 15/12/2027. Havendo acordo ou convenção, vale o que foi negociado: confira a da sua categoria. Já é possível adotar 40 horas desde agora, sem reduzir o salário e com aditivo contratual.</p>
     </div>
     <div class="callout">
       <p><strong>Escala 12x36 ou jornada já reduzida?</strong> Por enquanto, a jornada atual é mantida e muda apenas o divisor para 200 h/mês, quando o atual for maior. A escala 12x36 também precisará ser revisada até 15/12/2027 para ficar dentro das 40 h semanais: verifique com o sindicato da categoria. O STF determinou uma lei específica para regimes diferenciados em até 180 dias.</p>
@@ -248,7 +248,7 @@ footer p{margin:0 0 4px;opacity:.85}
       <ul>
         <li>Jornada semanal: até 44 h hoje, 42 h na etapa 1 e 40 h na etapa 2, em cada semana do ciclo. Para o termo aditivo, a semana deve fechar exatamente 42 h ou 40 h.</li>
         <li>Jornada mensal de referência: média semanal × 5, comparada com o divisor (220, 210 ou 200 horas).</li>
-        <li>Jornada diária: até 8 horas. Na etapa 1 (42 h), até 8h24 por dia em 5 dias é permitido sem hora extra até 15/12/2027, mesmo sem acordo coletivo (decisão liminar do STF). Outras compensações precisam ser aprovadas por acordo coletivo; verifique com o sindicato da categoria.</li>
+        <li>Jornada diária: até 8 horas. Na etapa 1 (42 h), até 8h24 por dia em 5 dias é permitido sem hora extra até 15/12/2027 se não houver acordo ou convenção coletiva firmados (decisão liminar do STF); havendo, vale o negociado. Outras compensações precisam ser aprovadas por acordo coletivo; verifique com o sindicato da categoria.</li>
         <li>Intervalo: mínimo de 1 hora (máximo de 2, salvo acordo ou convenção) para jornadas acima de 6 horas, e de 15 minutos para jornadas entre 4 e 6 horas.</li>
         <li>Descanso entre jornadas: no mínimo 11 horas entre a saída e a próxima entrada; após folga, 11 horas mais 24 horas por dia de folga.</li>
         <li>Folgas: 1 descanso semanal hoje e 2 dias de descanso remunerado por semana nas novas regras, preferencialmente com um deles no domingo, sem passar de 6 dias seguidos de trabalho.</li>
@@ -332,7 +332,7 @@ footer p{margin:0 0 4px;opacity:.85}
       const L=cap(lab(wi,di));
       if(d.bad){ add('erro',`${L}: ${d.bad}`); return; }
       if(d.badInt) add('erro',`${L}: ${d.badInt}`);
-      if(st.regra==='e1'&&d.comp<=504){ if(d.comp>480) add('info',`${L}: ${hm(d.comp)} de trabalho. Na etapa 1, até 8h24 por dia é permitido sem hora extra até 15/12/2027, mesmo sem acordo coletivo (decisão liminar do STF).`); }
+      if(st.regra==='e1'&&d.comp<=504){ if(d.comp>480) add('info',`${L}: ${hm(d.comp)} de trabalho. Na etapa 1, até 8h24 por dia é permitido sem hora extra até 15/12/2027 se não houver acordo ou convenção coletiva firmados; havendo, siga o que foi negociado (decisão liminar do STF).`); }
       else if(d.comp>480) add('erro',`${L}: ${hm(d.comp)} de trabalho, acima de ${st.regra==='e1'?'8h24':'8 horas'}. Jornadas com compensação precisam ser aprovadas por acordo coletivo. Verifique com o sindicato da categoria.`);
       if(!d.badInt){
         if(d.worked>360){
